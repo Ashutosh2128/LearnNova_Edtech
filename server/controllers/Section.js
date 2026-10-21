@@ -1,7 +1,7 @@
 const Section = require("../models/Section");
 const Course = require("../models/Course");
 const SubSection = require("../models/SubSection");
-
+const mongoose = require("mongoose");
 
 // Create a new section
 exports.createSection = async (req, res) => {
@@ -15,6 +15,23 @@ exports.createSection = async (req, res) => {
                 success: false,
                 message: "Missing required properties",
             });
+        }
+
+        // Check if course ID is a valid MongoDB ObjectId
+        if(!mongoose.Types.ObjectId.isValid(courseId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid course ID",
+            });
+        }
+
+        // Check course exist or not
+        const courseExist = await Course.findById(courseId);
+        if(!courseExist) {
+            return res.status(404).json({
+                success: false,
+                message: "Course is not exist",
+            })
         }
 
         // Create a new section with the given name

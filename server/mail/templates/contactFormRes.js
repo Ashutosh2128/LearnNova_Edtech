@@ -1,7 +1,7 @@
 exports.contactUsEmail = (
     email,
-    firstName,
-    lastName,
+    firstname,
+    lastname,
     message,
     phoneNo,
     countryCode,
@@ -81,15 +81,15 @@ exports.contactUsEmail = (
                     <div class='message'>Contact Form Confirmation</div>
 
                     <div class='body'>
-                        <p>Dear ${firstName} ${lastName},</p>
+                        <p>Dear ${firstname} ${lastname},</p>
 
                         <p>Thank you for contacting us. We have received your message and will respond to you as soon as possible.</p>
 
                         <p>Here are the details you provided:</p>
 
-                        <p>Name: ${firstName} ${lastName}</p>
+                        <p>Name: ${firstname} ${lastname}</p>
                         <p>Email: ${email}</p>
-                        <p>Phone Number: ${phoneNo}</p>
+                        <p>Phone Number: ${countryCode}-${phoneNo}</p>
                         <p>Message: ${message}</p>
                         <p>We appreciate your interest and will get back to you shortly.</p>
                     </div>

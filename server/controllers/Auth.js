@@ -71,6 +71,16 @@ exports.signup = async (req, res) => {
             })
         }
 
+        // Check if OTP has expired
+        const otpAge = Date.now() - response[0].createdAt.getTime();
+
+        if(otpAge > 5 * 60 * 1000) {
+            return res.status(400).json({
+                success: false,
+                message: "The OTP has expired. Please request a new OTP.",
+            })
+        }
+
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -94,7 +104,7 @@ exports.signup = async (req, res) => {
             accountType: accountType,
             approved: approved,
             additionalDetails: profileDetails._id,
-            image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
+            image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName.split('')[0]}${lastName.split('')[0]}`,
         })
 
         return res.status(200).json({
@@ -128,7 +138,7 @@ exports.login = async (req, res) => {
         }
 
         // Find user with provided email
-        const user = await User.findOne({ email }).populate("additioanDetails")
+        const user = await User.findOne({ email }).populate("additionalDetails")
 
         // If user not found with provided email
         if(!user) {
@@ -181,7 +191,7 @@ exports.login = async (req, res) => {
 }
 
 // Send OTP for email verification
-exports.sendotp = async (req, res) => {
+exports.sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -222,7 +232,7 @@ exports.sendotp = async (req, res) => {
         const otpPayload = { email, otp };
         const otpBody = await OTP.create(otpPayload);
         console.log("OTP Body", otpBody);
-        res.stauts(200).json({
+        res.status(200).json({
             success: true,
             message: "OTP Sent Successfully",
             otp,
@@ -243,7 +253,15 @@ exports.changePassword = async (req, res) => {
         const userDetails = await User.findById(req.user.id);
 
         // Get old password, new password, and confirm new password from req.body
-        const { oldPassword, newPassword } = req.body;
+        const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+        // Validation
+        if(!oldPassword || !newPassword || !confirmNewPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required",
+            });
+        }
 
         // Validate old password
         const isPasswordMatch = await bcrypt.compare(
@@ -256,6 +274,20 @@ exports.changePassword = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "The password is incorrect",
+            })
+        }
+
+        if(newPassword !== confirmNewPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirm password do not match",
+            })
+        }
+
+        if(newPassword === oldPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password cannot be the same as your current password",
             })
         }
 

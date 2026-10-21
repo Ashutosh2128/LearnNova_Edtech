@@ -24,10 +24,24 @@ exports.updateProfile = async (req, res) => {
         const userDetails = await User.findById(id);
         const profile = await Profile.findById(userDetails.additionalDetails);
 
-        const user = await User.findByIdAndUpdate(id, {
-            firstName,
-            lastName,
-        });
+        // const user = await User.findByIdAndUpdate(id, {
+        //     firstName,
+        //     lastName,
+        // });
+        // Avoid overwriting firstName and lastName with empty values
+        // when these fields are not provided in the request.
+        const updateData = {};
+
+        if(firstName) {
+            updateData.firstName = firstName;
+        }
+
+        if(lastName) {
+            updateData.lastName = lastName;
+        }
+
+        const user = await User.findByIdAndUpdate(id, updateData);
+
         // Saving user
         await user.save();
 
@@ -45,7 +59,7 @@ exports.updateProfile = async (req, res) => {
                                     .exec();
 
         return res.status(200).json({
-            success: false,
+            success: true,
             message: "Profile updated successfully",
             updatedUserDetails,
         })
